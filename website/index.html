@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>امتیازدهی به ربات</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+    font-family: Tahoma;
+    text-align: center;
+    margin: 20px;
+    background: linear-gradient(135deg, #1a1a2e, #6a0dad);
+    color: #fff;
+}
+h2 { color: #fff; }
+.stars {
+    font-size: 50px;
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+.star {
+    cursor: pointer;
+    margin: 0 5px;
+    color: #000;
+    transition: color 0.2s;
+}
+textarea {
+    width: 90%;
+    max-width: 400px;
+    height: 100px;
+    margin: 20px 0;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    resize: vertical;
+    direction: rtl;
+}
+button {
+    padding: 12px 25px;
+    font-size: 18px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+button:hover { background-color: #218838; }
+#selectedRatingDisplay {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #fff;
+    direction: rtl;
+}
+#feedbackHint {
+    margin-bottom: 10px;
+    color: #fff;
+    font-size: 16px;
+    direction: rtl;
+}
+@media(max-width: 500px) {
+    .stars { font-size: 35px; }
+    textarea { width: 95%; }
+    button { width: 90%; font-size: 16px; }
+}
+</style>
+</head>
+<body>
+
+<h2>امتیازدهی به ربات💫</h2>
+<p>لطفاً به عملکرد ربات امتیاز دهید:</p>
+<div id="feedbackHint">نظر شما به بهبود تجربه ربات کمک می‌کند.</div>
+
+<div class="stars" id="stars">
+    <span class="star" data-rating="1">⭐</span>
+    <span class="star" data-rating="2">⭐</span>
+    <span class="star" data-rating="3">⭐</span>
+    <span class="star" data-rating="4">⭐</span>
+    <span class="star" data-rating="5">⭐</span>
+</div>
+<div id="selectedRatingDisplay">0/5</div>
+
+<form id="feedbackForm">
+<textarea id="comment" placeholder="نظر خود را اینجا بنویسید..."></textarea><br>
+<button type="submit">ارسال امتیاز</button>
+</form>
+
+<script>
+let selectedRating = 0;
+const stars = document.querySelectorAll('.star');
+const display = document.getElementById('selectedRatingDisplay');
+
+function highlightStars(rating) {
+    const numericRating = parseInt(rating);
+    stars.forEach(star => {
+        star.style.color = parseInt(star.getAttribute('data-rating')) <= numericRating ? 'gold' : '#000';
+    });
+    display.textContent = numericRating + '/5';
+}
+
+stars.forEach(star => {
+    star.addEventListener('mouseover', function() { highlightStars(this.getAttribute('data-rating')); });
+    star.addEventListener('mouseout', function() { highlightStars(selectedRating); });
+    star.addEventListener('click', function() {
+        selectedRating = parseInt(this.getAttribute('data-rating'));
+        highlightStars(selectedRating);
+    });
+});
+
+document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if(selectedRating===0){ alert('لطفاً امتیاز انتخاب کنید!'); return; }
+
+    const comment = document.getElementById('comment').value;
+
+    fetch('https://your-n8n-url/webhook/feedback', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            rating: selectedRating,
+            comment: comment,
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent
+        })
+    }).then(res=>{
+        alert('✅ امتیاز شما با موفقیت ثبت شد!');
+        document.getElementById('comment').value='';
+        selectedRating=0;
+        highlightStars(0);
+    }).catch(err=>{
+        console.error(err);
+        alert('❌ خطا در ارسال امتیاز!');
+    });
+});
+</script>
+
+</body>
+</html>
